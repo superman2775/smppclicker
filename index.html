@@ -1,330 +1,374 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Smartschool++ Tycoon</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Customize scrollbar for better visibility */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background-color: rgba(100, 116, 139, 0.7);
-      border-radius: 4px;
-    }
+    ::-webkit-scrollbar { width: 8px; height:8px;}
+    ::-webkit-scrollbar-thumb { background: #64748b77; border-radius: 4px;}
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white p-4 min-h-screen">
+<div id="root"></div>
 
-  <div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+<script type="text/babel">
 
-  <!-- React, ReactDOM, Babel for JSX -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+if (!window.storage) {
+  window.storage = {
+    get: async (key) => {
+      return { value: localStorage.getItem(key) };
+    },
+    set: async (key, value) => {
+      localStorage.setItem(key, value);
+    },
+    delete: async (key) => {
+      localStorage.removeItem(key);
+    },
+    list: async (prefix) => {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) keys.push(key);
+      }
+      return { keys };
+    }
+  };
+}
 
-  <script type="text/babel">
+const Icons = {
+  Users: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <circle cx="9" cy="7" r="4" />
+      <circle cx="17" cy="7" r="4" />
+      <path d="M3 21v-1a6 6 0 016-6h0a6 6 0 016 6v1" />
+      <path d="M17 21v-1a6 6 0 016-6h0a6 6 0 00-6 6v1" />
+    </svg>
+  ),
+  Code: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+    </svg>
+  ),
+  Palette: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <circle cx="13.5" cy="6.5" r=".5" />
+      <circle cx="17.5" cy="10.5" r=".5" />
+      <circle cx="8.5" cy="7.5" r=".5" />
+      <circle cx="6.5" cy="12.5" r=".5" />
+      <path d="M12 2C6.48 2 2 6.48 2 12a10 10 0 008.29 9.87A3.58 3.58 0 0012 22c1.1 0 2.21-.15 3.25-.44A7.99 7.99 0 0022 12c0-5.52-4.48-10-10-10z"/>
+    </svg>
+  ),
+  Star: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <polygon points="12 2 15 9 22 10 17 15 18 22 12 18 6 22 7 15 2 10 9 9 12 2" />
+    </svg>
+  ),
+  TrendingUp: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+      <polyline points="17 6 23 6 23 12"/>
+    </svg>
+  ),
+  Zap: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  ),
+  MessageSquare: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="14" rx="2" />
+      <polyline points="3 17 8 12 16 19 21 14" />
+    </svg>
+  ),
+  Settings: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83
+        2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65
+        1.65 0 00-1 1.51V20a2 2 0 01-2 2h0a2 2 0 01-2-2v-.09a1.65
+        1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83
+        0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0
+        00-1.51-1H4a2 2 0 01-2-2v0a2 2 0 012-2h.09a1.65 1.65 0
+        001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2
+        2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33h0a1.65 1.65 0
+        001-1.51V4a2 2 0 012-2h0a2 2 0 012 2v.09a1.65 1.65 0 001
+        1.51h0a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0c.78.78.78
+        2.05 0 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v0a1.65 1.65 0
+        001.51 1H20a2 2 0 012 2v0a2 2 0 01-2 2h-.09a1.65 1.65 0
+        00-1.51 1z"/>
+    </svg>
+  ),
+  RotateCcw: (props) => (
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <polyline points="1 4 1 10 7 10" />
+      <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+    </svg>
+  ),
+};
 
-    const { useState, useEffect } = React;
+function SmartschoolTycoon() {
+  const [users, setUsers] = React.useState(100);
+  const [money, setMoney] = React.useState(10);
+  const [clickPower, setClickPower] = React.useState(1);
+  const [usersPerSecond, setUsersPerSecond] = React.useState(0);
 
-    // Inline SVG Icon components to replace lucide-react icons
-    const Icons = {
-      Users: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87m-4 5v-4a4 4 0 00-8 0v4m4-4v-2a4 4 0 118 0v2M7 10a4 4 0 100-8 4 4 0 000 8z" />
-        </svg>
-      ),
+  const [upgrades, setUpgrades] = React.useState({
+    themes: 0, darkMode: 0, widgets: 0, effects: 0,
+    quickMenu: 0, globalChat: 0, customBackgrounds: 0, planner: 0
+  });
+  const [autoGenerators, setAutoGenerators] = React.useState({
+    marketing: 0, socialMedia: 0, schoolPartnerships: 0, developers: 0
+  });
 
-      Code: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16 18l6-6-6-6M8 6l-6 6 6 6" />
-        </svg>
-      ),
+  const upgradeData = {
+    themes: { name: "Custom Themes", baseCost: 50, icon: Icons.Palette, effect: 2, desc: "+2 users/click" },
+    darkMode: { name: "Dark Mode", baseCost: 200, icon: Icons.Settings, effect: 5, desc: "+5 users/click" },
+    widgets: { name: "Planner Widget", baseCost: 500, icon: Icons.TrendingUp, effect: 10, desc: "+10 users/click" },
+    effects: { name: "Snow & Rain Effects", baseCost: 1000, icon: Icons.Zap, effect: 20, desc: "+20 users/click" },
+    quickMenu: { name: "Quick Menu (:)", baseCost: 2500, icon: Icons.Code, effect: 40, desc: "+40 users/click" },
+    globalChat: { name: "Global Chat", baseCost: 5000, icon: Icons.MessageSquare, effect: 80, desc: "+80 users/click" },
+    customBackgrounds: { name: "Custom Backgrounds", baseCost: 10000, icon: Icons.Palette, effect: 150, desc: "+150 users/click" },
+    planner: { name: "Schedule Integration", baseCost: 25000, icon: Icons.Star, effect: 300, desc: "+300 users/click" }
+  };
+  const generatorData = {
+    marketing: { name: "Marketing Campaign", baseCost: 100, baseUsers: 1, icon: Icons.TrendingUp },
+    socialMedia: { name: "Social Media Posts", baseCost: 500, baseUsers: 5, icon: Icons.MessageSquare },
+    schoolPartnerships: { name: "School Partnerships", baseCost: 2500, baseUsers: 25, icon: Icons.Users },
+    developers: { name: "Feature Developers", baseCost: 10000, baseUsers: 100, icon: Icons.Code }
+  };
 
-      Palette: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2a10 10 0 00-10 10 10 10 0 0010 10h2a2 2 0 001.9-2.5 2 2 0 00-1.45-1.38 1.5 1.5 0 01-1.9-1.85 2 2 0 00.9-1.38 2 2 0 00-2-2z" />
-          <circle cx="9" cy="12" r="1" />
-          <circle cx="15" cy="12" r="1" />
-          <circle cx="12" cy="15" r="1" />
-        </svg>
-      ),
-
-      Star: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 17.27l5.18 3.73-1.64-6.81 5.46-4.73-7.19-.61L12 2 9.19 9.85l-7.19.61 5.46 4.73-1.64 6.81L12 17.27z" />
-        </svg>
-      ),
-
-      TrendingUp: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 17l6-6 4 4 8-8" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M14 7h7v7" />
-        </svg>
-      ),
-
-      Zap: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-        </svg>
-      ),
-
-      MessageSquare: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-        </svg>
-      ),
-
-      Settings: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.4 15a7.97 7.97 0 001.4-1.4l-2.2-3.8m-1.8 4.8l-4-4m-1 1l-4 4M5 13a7.97 7.97 0 00-1.4-1.4l2.2-3.8m1.8 4.8l4-4" />
-        </svg>
-      )
-    };
-
-    function SmartschoolTycoon() {
-      const [users, setUsers] = useState(100);
-      const [money, setMoney] = useState(10);
-      const [clickPower, setClickPower] = useState(1);
-      const [usersPerSecond, setUsersPerSecond] = useState(0);
-      const [upgrades, setUpgrades] = useState({
-        themes: 0,
-        darkMode: 0,
-        widgets: 0,
-        effects: 0,
-        quickMenu: 0,
-        globalChat: 0,
-        customBackgrounds: 0,
-        planner: 0
-      });
-      const [autoGenerators, setAutoGenerators] = useState({
-        marketing: 0,
-        socialMedia: 0,
-        schoolPartnerships: 0,
-        developers: 0
-      });
-
-      const upgradeData = {
-        themes: { name: "Custom Themes", baseCost: 50, icon: Icons.Palette, effect: 2, desc: "+2 users/click" },
-        darkMode: { name: "Dark Mode", baseCost: 200, icon: Icons.Settings, effect: 5, desc: "+5 users/click" },
-        widgets: { name: "Planner Widget", baseCost: 500, icon: Icons.TrendingUp, effect: 10, desc: "+10 users/click" },
-        effects: { name: "Snow & Rain Effects", baseCost: 1000, icon: Icons.Zap, effect: 20, desc: "+20 users/click" },
-        quickMenu: { name: "Quick Menu (:)", baseCost: 2500, icon: Icons.Code, effect: 40, desc: "+40 users/click" },
-        globalChat: { name: "Global Chat", baseCost: 5000, icon: Icons.MessageSquare, effect: 80, desc: "+80 users/click" },
-        customBackgrounds: { name: "Custom Backgrounds", baseCost: 10000, icon: Icons.Palette, effect: 150, desc: "+150 users/click" },
-        planner: { name: "Schedule Integration", baseCost: 25000, icon: Icons.Star, effect: 300, desc: "+300 users/click" }
-      };
-
-      const generatorData = {
-        marketing: { name: "Marketing Campaign", baseCost: 100, baseUsers: 1, icon: Icons.TrendingUp },
-        socialMedia: { name: "Social Media Posts", baseCost: 500, baseUsers: 5, icon: Icons.MessageSquare },
-        schoolPartnerships: { name: "School Partnerships", baseCost: 2500, baseUsers: 25, icon: Icons.Users },
-        developers: { name: "Feature Developers", baseCost: 10000, baseUsers: 100, icon: Icons.Code }
-      };
-
-      const getCost = (baseCost, count) => Math.floor(baseCost * Math.pow(1.15, count));
-
-      const calculateUsersPerSecond = () => {
-        let total = 0;
-        Object.keys(autoGenerators).forEach(key => {
-          total += autoGenerators[key] * generatorData[key].baseUsers;
-        });
-        return total;
-      };
-
-      const calculateClickPower = () => {
-        let total = 1;
-        Object.keys(upgrades).forEach(key => {
-          total += upgrades[key] * upgradeData[key].effect;
-        });
-        return total;
-      };
-
-      useEffect(() => {
-        setUsersPerSecond(calculateUsersPerSecond());
-        setClickPower(calculateClickPower());
-      }, [upgrades, autoGenerators]);
-
-      useEffect(() => {
-        const interval = setInterval(() => {
-          if (usersPerSecond > 0) {
-            setUsers(prev => prev + usersPerSecond / 10);
-            setMoney(prev => prev + (usersPerSecond / 10) * 0.1);
-          }
-        }, 100);
-        return () => clearInterval(interval);
-      }, [usersPerSecond]);
-
-      const handleClick = () => {
-        setUsers(prev => prev + clickPower);
-        setMoney(prev => prev + clickPower * 0.1);
-      };
-
-      const buyUpgrade = (type) => {
-        const cost = getCost(upgradeData[type].baseCost, upgrades[type]);
-        if (money >= cost) {
-          setMoney(prev => prev - cost);
-          setUpgrades(prev => ({ ...prev, [type]: prev[type] + 1 }));
+  React.useEffect(() => {
+    (async function loadGame() {
+      try {
+        const savedGame = await window.storage.get('smartschool-game');
+        if (savedGame && savedGame.value) {
+          const data = JSON.parse(savedGame.value);
+          setUsers(data.users || 100);
+          setMoney(data.money || 10);
+          setUpgrades(data.upgrades || upgrades);
+          setAutoGenerators(data.autoGenerators || autoGenerators);
         }
-      };
+      } catch (e) {}
+    })();
+  }, []);
 
-      const buyGenerator = (type) => {
-        const cost = getCost(generatorData[type].baseCost, autoGenerators[type]);
-        if (money >= cost) {
-          setMoney(prev => prev - cost);
-          setAutoGenerators(prev => ({ ...prev, [type]: prev[type] + 1 }));
-        }
-      };
+  React.useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const gameData = { users, money, upgrades, autoGenerators, lastSaved: Date.now() };
+      window.storage.set('smartschool-game', JSON.stringify(gameData));
+    }, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [users, money, upgrades, autoGenerators]);
 
-      const formatNumber = (num) => {
-        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-        return Math.floor(num).toLocaleString();
-      };
+  const getCost = (baseCost, count) => Math.floor(baseCost * Math.pow(1.15, count));
+  const calculateUsersPerSecond = () => (
+    Object.keys(autoGenerators).reduce((t, k) => t + autoGenerators[k]*generatorData[k].baseUsers, 0)
+  );
+  const calculateClickPower = () => (
+    1 + Object.keys(upgrades).reduce((t, k) => t + upgrades[k]*upgradeData[k].effect, 0)
+  );
 
-      return (
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Smartschool++ Tycoon
-            </h1>
-            <p className="text-blue-200">Build the ultimate browser extension empire!</p>
-          </div>
+  React.useEffect(() => {
+    setUsersPerSecond(calculateUsersPerSecond());
+    setClickPower(calculateClickPower());
+  }, [upgrades, autoGenerators]);
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-200 text-sm">Total Users</p>
-                  <p className="text-3xl font-bold">{formatNumber(users)}</p>
-                </div>
-                <Icons.Users />
-              </div>
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      if (usersPerSecond > 0) {
+        setUsers(u => u + usersPerSecond/10);
+        setMoney(m => m + (usersPerSecond/10)*0.1);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, [usersPerSecond]);
+
+  const handleClick = () => {
+    setUsers(u => u + clickPower);
+    setMoney(m => m + clickPower*0.1);
+  };
+  const buyUpgrade = (type) => {
+    const c = getCost(upgradeData[type].baseCost, upgrades[type]);
+    if (money >= c) {
+      setMoney(m => m - c);
+      setUpgrades(u => ({...u, [type]: u[type]+1}));
+    }
+  };
+  const buyGenerator = (type) => {
+    const c = getCost(generatorData[type].baseCost, autoGenerators[type]);
+    if (money >= c) {
+      setMoney(m => m - c);
+      setAutoGenerators(a => ({...a, [type]: a[type]+1}));
+    }
+  };
+  const formatNumber = (num) => num >= 1e6 ? (num/1e6).toFixed(2)+'M'
+                                  : num >= 1e3 ? (num/1e3).toFixed(1)+'K'
+                                  : Math.floor(num).toLocaleString();
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      <div className="text-center mb-8">
+        <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          Smartschool++ Tycoon
+        </h1>
+        <p className="text-blue-200">Bouw de ultieme browser extensie-imperium!</p>
+        <div className="mt-4 flex justify-center gap-4">
+          <button
+            onClick={async () => {
+              if (confirm('Weet je zeker dat je je voortgang wilt resetten?')) {
+                await window.storage.delete('smartschool-game');
+                setUsers(100); setMoney(10);
+                setUpgrades({
+                  themes: 0, darkMode: 0, widgets: 0, effects: 0,
+                  quickMenu: 0, globalChat: 0, customBackgrounds: 0, planner: 0
+                });
+                setAutoGenerators({
+                  marketing: 0, socialMedia: 0, schoolPartnerships: 0, developers: 0
+                });
+              }
+            }}
+            className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg font-semibold flex items-center gap-2"
+          >
+            <Icons.RotateCcw className="w-5 h-5" />
+            Reset Game
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-200 text-sm">Total Users</p>
+              <p className="text-3xl font-bold">{formatNumber(users)}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-200 text-sm">Revenue</p>
-                  <p className="text-3xl font-bold">${formatNumber(money)}</p>
-                </div>
-                <Icons.Star />
-              </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-200 text-sm">Growth Rate</p>
-                  <p className="text-3xl font-bold">{formatNumber(usersPerSecond)}/s</p>
-                </div>
-                <Icons.TrendingUp />
-              </div>
-            </div>
-          </div>
-
-          <div className="mb-8 text-center">
-            <button onClick={handleClick} className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-8 px-12 rounded-2xl text-2xl shadow-2xl transform transition hover:scale-105 active:scale-95">
-              <div className="flex flex-col items-center gap-2">
-                <Icons.Code />
-                <span>Add Users</span>
-                <span className="text-sm">+{formatNumber(clickPower)} users</span>
-              </div>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Icons.Zap className="w-6 h-6" />
-                Extension Features
-              </h2>
-              <div className="space-y-3">
-                {Object.entries(upgradeData).map(([key, data]) => {
-                  const IconComp = data.icon;
-                  const cost = getCost(data.baseCost, upgrades[key]);
-                  const canAfford = money >= cost;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => buyUpgrade(key)}
-                      disabled={!canAfford}
-                      className={`w-full text-left p-4 rounded-lg transition ${
-                        canAfford ? "bg-blue-600/40 hover:bg-blue-600/60 cursor-pointer" : "bg-gray-600/20 cursor-not-allowed opacity-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <IconComp className="w-5 h-5" />
-                          <div>
-                            <p className="font-semibold">{data.name}</p>
-                            <p className="text-sm text-blue-200">{data.desc}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">${formatNumber(cost)}</p>
-                          <p className="text-sm text-green-300">Level {upgrades[key]}</p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Icons.TrendingUp className="w-6 h-6" />
-                Growth Strategies
-              </h2>
-              <div className="space-y-3">
-                {Object.entries(generatorData).map(([key, data]) => {
-                  const IconComp = data.icon;
-                  const cost = getCost(data.baseCost, autoGenerators[key]);
-                  const canAfford = money >= cost;
-                  const production = autoGenerators[key] * data.baseUsers;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => buyGenerator(key)}
-                      disabled={!canAfford}
-                      className={`w-full text-left p-4 rounded-lg transition ${
-                        canAfford ? "bg-purple-600/40 hover:bg-purple-600/60 cursor-pointer" : "bg-gray-600/20 cursor-not-allowed opacity-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <IconComp className="w-5 h-5" />
-                          <div>
-                            <p className="font-semibold">{data.name}</p>
-                            <p className="text-sm text-purple-200">{formatNumber(data.baseUsers)} users/s each</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">${formatNumber(cost)}</p>
-                          <p className="text-sm text-green-300">
-                            {autoGenerators[key]} ({formatNumber(production)}/s)
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 text-center text-sm text-blue-200">
-            <p>Based on the real Smartschool++ extension • smartschoolplusplus.com</p>
+            <Icons.Users className="w-12 h-12 text-blue-400" />
           </div>
         </div>
-      );
-    }
+        <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-200 text-sm">Revenue</p>
+              <p className="text-3xl font-bold">${formatNumber(money)}</p>
+            </div>
+            <Icons.Star className="w-12 h-12 text-green-400" />
+          </div>
+        </div>
+        <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-200 text-sm">Growth Rate</p>
+              <p className="text-3xl font-bold">{formatNumber(usersPerSecond)}/s</p>
+            </div>
+            <Icons.TrendingUp className="w-12 h-12 text-purple-400" />
+          </div>
+        </div>
+      </div>
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<SmartschoolTycoon />);
+      <div className="mb-8 text-center">
+        <button onClick={handleClick}
+          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold py-8 px-12 rounded-2xl text-2xl shadow-2xl transform transition hover:scale-105 active:scale-95"
+        >
+          <div className="flex flex-col items-center gap-2">
+            <Icons.Code className="w-16 h-16" />
+            <span>Add Users</span>
+            <span className="text-sm">+{formatNumber(clickPower)} users</span>
+          </div>
+        </button>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Icons.Zap className="w-6 h-6" />
+            Extension Features
+          </h2>
+          <div className="space-y-3">
+            {Object.entries(upgradeData).map(([key, data]) => {
+              const Icon = data.icon;
+              const cost = getCost(data.baseCost, upgrades[key]);
+              const canAfford = money >= cost;
+              return (
+                <button key={key}
+                  onClick={() => buyUpgrade(key)}
+                  disabled={!canAfford}
+                  className={`w-full text-left p-4 rounded-lg transition ${
+                    canAfford ? 'bg-blue-600/40 hover:bg-blue-600/60 cursor-pointer'
+                              : 'bg-gray-600/20 cursor-not-allowed opacity-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-5 h-5" />
+                      <div>
+                        <p className="font-semibold">{data.name}</p>
+                        <p className="text-sm text-blue-200">{data.desc}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">${formatNumber(cost)}</p>
+                      <p className="text-sm text-green-300">Level {upgrades[key]}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="bg-white/10 backdrop-blur rounded-xl p-6 border border-white/20">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Icons.TrendingUp className="w-6 h-6" />
+            Growth Strategies
+          </h2>
+          <div className="space-y-3">
+            {Object.entries(generatorData).map(([key, data]) => {
+              const Icon = data.icon;
+              const cost = getCost(data.baseCost, autoGenerators[key]);
+              const canAfford = money >= cost;
+              const production = autoGenerators[key] * data.baseUsers;
+              return (
+                <button key={key}
+                  onClick={() => buyGenerator(key)}
+                  disabled={!canAfford}
+                  className={`w-full text-left p-4 rounded-lg transition ${
+                    canAfford ? 'bg-purple-600/40 hover:bg-purple-600/60 cursor-pointer'
+                              : 'bg-gray-600/20 cursor-not-allowed opacity-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-5 h-5" />
+                      <div>
+                        <p className="font-semibold">{data.name}</p>
+                        <p className="text-sm text-purple-200">{formatNumber(data.baseUsers)} users/s each</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">${formatNumber(cost)}</p>
+                      <p className="text-sm text-green-300">
+                        {autoGenerators[key]} ({formatNumber(production)}/s)
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="mt-8 text-center text-sm text-blue-200">
+        <p>Gebaseerd op de echte Smartschool++ extensie • smartschoolplusplus.com</p>
+        <p className="mt-2 text-white/40">Je voortgang wordt automatisch opgeslagen!</p>
+      </div>
+    </div>
+  );
+}
 
-  </script>
+ReactDOM.createRoot(document.getElementById('root')).render(<SmartschoolTycoon />);
+</script>
 </body>
 </html>
